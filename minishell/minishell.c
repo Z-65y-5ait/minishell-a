@@ -6,7 +6,7 @@
 /*   By: azaimi <azaimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/20 23:55:20 by azaimi            #+#    #+#             */
-/*   Updated: 2025/02/26 02:15:21 by azaimi           ###   ########.fr       */
+/*   Updated: 2025/02/26 02:30:28 by azaimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,10 +34,12 @@ void	minishell_loop()
 		}
 		add_history(rl);
 		token = ft_add_cmd(rl);
-		cmd = ft_parse_pipe(&token);
-		if (!cmd)
-			continue;
-		ft_print_list(cmd);
+		if (validate_pipes(token))
+		{
+			cmd = ft_parse_pipe(&token);
+			if (cmd)
+				ft_print_list(cmd);
+		}
 	}
 }
 

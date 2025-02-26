@@ -6,7 +6,7 @@
 /*   By: azaimi <azaimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/20 23:55:26 by azaimi            #+#    #+#             */
-/*   Updated: 2025/02/26 01:58:43 by azaimi           ###   ########.fr       */
+/*   Updated: 2025/02/26 02:31:14 by azaimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -116,5 +116,6 @@ t_error_type 	validate_pipe_syntax(char *input);
 size_t			ft_strlen(char *str);
 char			*ft_strtrim(char *s1, char *set);
 void			ft_print_list_2(t_token *cmd);
+int 			validate_pipes(t_token *token);
 
 #endif

@@ -6,7 +6,7 @@
 /*   By: azaimi <azaimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/22 16:12:15 by azaimi            #+#    #+#             */
-/*   Updated: 2025/02/26 02:16:49 by azaimi           ###   ########.fr       */
+/*   Updated: 2025/02/26 02:42:57 by azaimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -120,36 +120,58 @@ char	**ft_check_parse(t_token **check, t_parse **p, int *i)
 	return (arg);
 }
 
-t_parse	*ft_parse_pipe(t_token **token_p)
+static t_parse *parse_piped_commands(t_token **token_p)
 {
-	t_parse	*head;
-	t_parse	*current;
-	t_parse *cmd;
+    t_parse *cmd;
 	t_token *token;
+	t_parse *next_cmd;
 
-	head = NULL;
-	current = NULL;
-	token = *token_p;
-	while(token)
-	{
-		if (token && token->type == T_PIPE)
-		{
-		    printf("minishell: syntax error near unexpected token `|'\n");
-		    break;
-		}
-		cmd = ft_parsing(&token);
-		if (!cmd)
-            break;
-		if (!head)
-			head = cmd;
-		else
-			current->next = cmd;
-		current = cmd;
-		if (token && token->type == T_PIPE)
-			token = token->next;
-		else
-			break;
-	}
-	*token_p = token;
-	return (head);
+	cmd = ft_parsing(token_p);
+    if (!cmd)
+        return NULL;
+    token = *token_p;
+    if (token && token->type == T_PIPE)
+    {
+        *token_p = token->next;
+        next_cmd = parse_piped_commands(token_p);
+        if (!next_cmd)
+            return NULL;
+        cmd->next = next_cmd;
+    }
+    else
+        *token_p = token;
+    return cmd;
+}
+
+t_parse *ft_parse_pipe(t_token **token_p)
+{
+    return (parse_piped_commands(token_p));
+}
+
+int validate_pipes(t_token *token)
+{
+    int expect_command;
+
+	expect_command = 1;
+    while (token)
+    {
+        if (token->type == T_PIPE)
+        {
+            if (expect_command)
+            {
+                printf("minishell: syntax error near unexpected token `|'\n");
+                return 0;
+            }
+            expect_command = 1;
+        }
+        else
+            expect_command = 0;
+        token = token->next;
+    }
+    if (expect_command)
+    {
+        printf("minishell: syntax error: unexpected end of file\n");
+        return 0;
+    }
+    return 1;
 }
