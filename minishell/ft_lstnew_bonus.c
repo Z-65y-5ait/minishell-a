@@ -6,7 +6,7 @@
 /*   By: azaimi <azaimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/24 01:18:57 by azaimi            #+#    #+#             */
-/*   Updated: 2025/02/22 17:41:34 by azaimi           ###   ########.fr       */
+/*   Updated: 2025/02/25 20:34:53 by azaimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,9 +46,9 @@ t_parse	*ft_parse_new(void)
 		return (NULL);
 	new->cmd_name = NULL;
 	new->args = NULL;
-	new->app = 0;
-	new->in_re = NULL;
-	new->out_re = NULL;
+	new->in_re = -2;
+	new->out_re = -2;
+	new->builtins = 0;
 	new->next = NULL;
 	return (new);
 }

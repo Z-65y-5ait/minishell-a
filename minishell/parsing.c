@@ -6,7 +6,7 @@
 /*   By: azaimi <azaimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/22 16:12:15 by azaimi            #+#    #+#             */
-/*   Updated: 2025/02/23 09:45:38 by azaimi           ###   ########.fr       */
+/*   Updated: 2025/02/26 02:16:49 by azaimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,17 +55,18 @@ t_parse	*ft_parsing(t_token **token)
 	arg = ft_check_parse(token, &parse, &i);
 	if (!arg)
         return (NULL);
+	parse->args = arg;
 	if (i > 0)
 		parse->cmd_name = ft_strdup(arg[0]);
 	else
         parse->cmd_name = NULL;
-	ar = ft_adjuste_arg(arg);
-	parse->args = ar;
+	ft_builtins_check(parse);
 	return (parse);
 }
 
 static void	handle_redirection(t_token **check, t_parse **p)
 {
+	int fd;
 	t_token_type	type;
 	t_token *redirect_token;
 
@@ -75,16 +76,19 @@ static void	handle_redirection(t_token **check, t_parse **p)
 	if (!*check)
 		return ;
 	if (type == T_REDIR_IN)
-		(*p)->in_re = ft_strdup((*check)->value);
+	{
+		fd = open((*check)->value, O_RDONLY);
+		(*p)->in_re = fd;
+	}
 	else if (type == T_REDIR_OUT)
 	{
-		(*p)->out_re = ft_strdup((*check)->value);
-		(*p)->app = 0;
+		fd = open((*check)->value, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+		(*p)->out_re = fd;
 	}
 	else if (type == T_APPEND)
 	{
-		(*p)->out_re = ft_strdup((*check)->value);
-		(*p)->app = 1;
+		fd = open((*check)->value, O_WRONLY | O_CREAT | O_APPEND, 0644);
+		(*p)->out_re = fd;
 	}
 	*check = (*check)->next;
 }
@@ -92,26 +96,26 @@ static void	handle_redirection(t_token **check, t_parse **p)
 char	**ft_check_parse(t_token **check, t_parse **p, int *i)
 {
 	char	**arg;
-	t_token *current;
 
 	arg = (char **)malloc(sizeof(char *) * 101);
 	if (!arg)
 		return (NULL);
-	current = *check;
-	while (current && (current->type != T_PIPE))
+	while ((*check) && ((*check)->type != T_PIPE))
 	{
-		if (current->type == T_REDIR_IN || current->type == T_REDIR_OUT
-			|| current->type == T_APPEND)
-			handle_redirection(&current, p);
-		else if (current->type == T_WORD)
+		if ((*check)->type == T_REDIR_IN || (*check)->type == T_REDIR_OUT
+			|| (*check)->type == T_APPEND)
 		{
-			arg[(*i)++] = ft_strdup(current->value);
-			current = current->next;
+			handle_redirection(check, p);
+			cleanup_redirections(*p);
+		}
+		else if ((*check)->type == T_WORD)
+		{
+			arg[(*i)++] = ft_strdup((*check)->value);
+			(*check) = (*check)->next;
 		}
 		else
-			current = current->next;
+			(*check) = (*check)->next;
 	}
-	*check = current;
 	arg[*i] = NULL;
 	return (arg);
 }
@@ -128,6 +132,11 @@ t_parse	*ft_parse_pipe(t_token **token_p)
 	token = *token_p;
 	while(token)
 	{
+		if (token && token->type == T_PIPE)
+		{
+		    printf("minishell: syntax error near unexpected token `|'\n");
+		    break;
+		}
 		cmd = ft_parsing(&token);
 		if (!cmd)
             break;
@@ -143,9 +152,4 @@ t_parse	*ft_parse_pipe(t_token **token_p)
 	}
 	*token_p = token;
 	return (head);
-}
-
-char	**ft_adjust(char **args)
-{
-	
 }
